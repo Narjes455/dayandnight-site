@@ -155,6 +155,13 @@ function rows_(n) {
   return sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getValues();
 }
 function settings_() { const o = {}; rows_(SH.SET).forEach(r => { if (r[0] !== '') o[String(r[0]).trim()] = r[1]; }); return o; }
+/* يقرأ الرقم حتى لو انكتب معه «ر.س» أو بأرقام عربية */
+function num_(v) {
+  if (typeof v === 'number') return v;
+  const t = String(v == null ? '' : v).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/٫/g, '.');
+  const m = t.match(/\d+(?:\.\d+)?/);
+  return m ? Number(m[0]) : 0;
+}
 function yes_(v) { return String(v).trim() === 'نعم'; }
 function json_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 function phone_(p) {
@@ -178,19 +185,19 @@ function milkMode_(v) {
 function publicData_() {
   const s = settings_();
   const menu = rows_(SH.MENU).filter(r => r[0] !== '' && r[1] !== '').map(r => ({
-    id: String(r[0]).trim(), name: String(r[1]), price: Number(r[2]) || 0, on: yes_(r[3]), desc: String(r[4] || ''),
+    id: String(r[0]).trim(), name: String(r[1]), price: num_(r[2]), on: yes_(r[3]), desc: String(r[4] || ''),
     badge: String(r[5] || ''), img: String(r[6] || '').trim(), milk: milkMode_(r[7]), adds: ids_(r[8])
   }));
-  const opt = n => rows_(n).filter(r => r[0] !== '' && r[1] !== '').map(r => ({ id: String(r[0]).trim(), name: String(r[1]), price: Number(r[2]) || 0, on: yes_(r[3]) }));
+  const opt = n => rows_(n).filter(r => r[0] !== '' && r[1] !== '').map(r => ({ id: String(r[0]).trim(), name: String(r[1]), price: num_(r[2]), on: yes_(r[3]) }));
   return {
     menu: menu, adds: opt(SH.ADD), milks: opt(SH.MILK),
     settings: {
       name: s['اسم المحل'] || 'Day & Night',
-      open: Number(s['يفتح الساعة']) || 15, close: Number(s['يسكر الساعة']) || 22,
+      open: num_(s['يفتح الساعة']) || 15, close: num_(s['يسكر الساعة']) || 22,
       off: String(s['يوم الإجازة'] || ''), accepting: s['استقبال الطلبات'] === '' ? true : yes_(s['استقبال الطلبات']),
       banner: String(s['رسالة البانر'] || ''),
       hideOut: String(s['لما يخلص صنف'] || 'يختفي').trim() !== 'يظهر باهت',
-      freeAt: Number(s['نجوم المشروب المجاني']) || 3,
+      freeAt: num_(s['نجوم المشروب المجاني']) || 3,
       place: String(s['مكان الاستلام'] || ''),
       whatsapp: String(s['رقم الواتساب'] || '').replace(/[^\d]/g, ''),
       transfer: String(s['بيانات التحويل'] || '')
