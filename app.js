@@ -196,7 +196,8 @@ function showTrack(){
     $('#newOrd').onclick = () => { K.store.set('last', null); clearInterval(trackT); go('menu'); };
   };
   draw('جديد');
-  const poll = async () => { try { const r = await K.apiGet({a:'track', no:L.no}); if (r && r.ok){ draw(r.status); if (r.status === 'استلم' || r.status === 'ملغي') clearInterval(trackT); } } catch(e){} };
+  const poll = async () => { try { const r = await K.apiGet({a:'track', no:L.no}); if (r && r.ok){ draw(r.status); if (r.status === 'استلم' || r.status === 'ملغي') clearInterval(trackT); }
+    else if (r && r.ok === false){ K.store.set('last', null); clearInterval(trackT); go('menu'); } } catch(e){} };
   clearInterval(trackT); poll(); trackT = setInterval(poll, 15000);
 }
 
