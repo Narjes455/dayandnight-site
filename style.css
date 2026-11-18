@@ -208,3 +208,5 @@ section#track,section#cart{padding-bottom:30px}
 .social a{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--card);border:1px solid var(--line);color:var(--ink);transition:transform .2s}
 .social a:active{transform:scale(.92)}
 .social svg{width:20px;height:20px}
+
+.maplink{color:inherit;text-decoration:underline;text-underline-offset:3px}

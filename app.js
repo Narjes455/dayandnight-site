@@ -40,6 +40,9 @@ function go(s){
 }
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => go(b.dataset.s));
 
+/* ---------- اللوكيشن: رابط من الإعدادات، أو بحث في قوقل ماب ---------- */
+function mapUrl(){ const s = DATA.settings; return /^https:\/\//.test(s.map || '') ? s.map : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent((s.place || '') + ' ' + 'Day & Night'); }
+
 /* ---------- الدوام ---------- */
 function isOffDay(d){ return DATA.settings.off && K.DAYS[d.getDay()] === DATA.settings.off.trim(); }
 function isOpen(){ const s = DATA.settings, h = nowH(); return !isOffDay(K.riyadhNow()) && h >= s.open && h < s.close; }
@@ -48,7 +51,7 @@ function renderStatus(){
   $('#dot').classList.toggle('off', !open || !s.accepting);
   $('#statusTxt').textContent = !s.accepting ? 'الطلبات متوقفة مؤقتًا' : open ? 'مفتوح الآن · يقفل ' + K.fmtHour(s.close) : 'مقفل · نفتح ' + K.fmtHour(s.open);
   $('#hoursTxt').textContent = 'يوميًا ' + K.fmtHour(s.open) + ' – ' + K.fmtHour(s.close) + (s.off ? ' · ' + s.off + ' إجازة' : '');
-  $('#placeTxt').textContent = '📍 ' + (s.place || 'المدينة المنورة');
+  $('#placeTxt').innerHTML = `<a class="maplink" href="${esc(mapUrl())}" target="_blank" rel="noopener">📍 ${esc(s.place || 'المدينة المنورة')}</a>`;
   const b = $('#banner'); b.hidden = !s.banner; b.textContent = s.banner;
   const c = $('#closedBox');
   if (!s.accepting){ c.hidden = false; c.innerHTML = 'متوقفين عن استقبال الطلبات حاليًا، نرجع لكم قريب ✦'; }
@@ -128,7 +131,7 @@ function renderCart(){
      <div id="rwBox">${canReward ? `<label class="reward"><input type="checkbox" id="rw" ${useR ? 'checked' : ''}> عندك ${starsCache.stars} نجوم ✦ خذي أرخص مشروب مجانًا</label>` : starsCache ? `<div class="note" style="margin:6px 0 0">✦ نجومك ${starsCache.stars}/${starsCache.freeAt} — هذا الطلب يضيف ${lines.reduce((a,l)=>a+l.it.q,0)}</div>` : ''}</div>
      <div class="field"><label for="cName">الاسم</label><input type="text" id="cName" maxlength="40" placeholder="اسمك" value="${esc(saved.name || '')}"></div>
      <div class="field"><label for="cTime">وقت الاستلام</label><select id="cTime">${tl.map(t => `<option>${esc(t)}</option>`).join('') || '<option value="">الطلبات متوقفة حاليًا</option>'}</select></div>
-     <div class="field">طريقة الدفع<div class="pay"><label><input type="radio" name="pay" value="كاش" checked> كاش عند الاستلام</label><label><input type="radio" name="pay" value="تحويل"> تحويل بنكي</label></div></div>
+     <div class="field">طريقة الدفع<div class="info" style="margin-top:6px">💳 تحويل بنكي${DATA.settings.transfer ? '\n' + esc(DATA.settings.transfer) : ''}</div></div>
      <div class="field"><label for="cNote">ملاحظات</label><textarea id="cNote" maxlength="300" placeholder="مثلاً: سكر خفيف"></textarea></div>
      <div class="sum"><span>المجموع</span><span>${useR ? `<s style="opacity:.5;font-weight:500">${sub}</s> ` : ''}${total} ريال</span></div>
      <button class="btn" id="send" ${tl.length ? '' : 'disabled'}>أرسلي الطلب ✦</button>
@@ -164,14 +167,14 @@ async function send(){
   if (!name) return err('اكتبي اسمك');
   const btn = $('#send'); btn.disabled = true; btn.textContent = 'يرسل…'; err('');
   K.store.set('me', {phone, name});
-  const body = {a:'order', name, phone, time:$('#cTime').value, pay:(document.querySelector('input[name=pay]:checked')||{}).value, note:$('#cNote').value,
+  const body = {a:'order', name, phone, time:$('#cTime').value, pay:'تحويل', note:$('#cNote').value,
     reward: !!($('#rw') && $('#rw').checked), items: cart.map(x => ({id:x.id, q:x.q, milk:x.milk, adds:x.adds, tops:x.tops, bname:x.bname}))};
   if (cart.some(x => x.id === 'bday' && x.photo) && bdPhoto) body.photo = bdPhoto;
   try {
     const r = await K.apiPost(body);
     if (!r || !r.ok){ btn.disabled = false; btn.textContent = 'أرسلي الطلب ✦'; return err((r && r.msg) || 'ما انرسل الطلب، جربي مرة ثانية'); }
     cart = []; saveCart(); bdPhoto = null; starsCache = {stars:r.stars, freeAt:r.freeAt, phone};
-    K.store.set('last', {at:Date.now(), phone, no:r.no, total:r.total, reward:r.reward, place:r.place, map:r.map, transfer:r.transfer, pay:body.pay, time:body.time});
+    K.store.set('last', {at:Date.now(), phone, no:r.no, total:r.total, reward:r.reward, place:r.place, map:r.map || mapUrl(), transfer:r.transfer, pay:body.pay, time:body.time});
     showTrack();
   } catch(e){ btn.disabled = false; btn.textContent = 'أرسلي الطلب ✦'; err('ما فيه اتصال، تأكدي من النت وجربي مرة ثانية'); }
 }
@@ -192,7 +195,7 @@ function showTrack(){
       <div class="no">${esc(L.no)}</div>
       <div style="font-weight:800">${L.total} ريال${L.reward ? ` <small style="color:#1fa855">(مشروب علينا ✦ -${L.reward})</small>` : ''}</div>
       ${st === 'ملغي' ? '' : `<div class="steps">${STEPS.map((s, i) => `<div class="step ${i <= idx ? 'on' : ''}"><i>${s[2]}</i>${s[1]}</div>`).join('')}</div>`}
-      <div class="info">⏰ الاستلام: ${esc(L.time || '')}\n📍 ${esc(L.place || '')}${L.map ? `\n<a href="${esc(L.map)}" target="_blank" rel="noopener">افتحي اللوكيشن على الخريطة</a>` : ''}${L.pay === 'تحويل' ? '\n💳 ' + (L.transfer ? esc(L.transfer) : 'بنرسل لك بيانات التحويل') : '\n💵 الدفع كاش عند الاستلام'}</div>
+      <div class="info">⏰ الاستلام: ${esc(L.time || '')}\n<a href="${esc(L.map || mapUrl())}" target="_blank" rel="noopener">📍 ${esc(L.place || '')} · افتحي الموقع على الخريطة</a>\n💳 ${L.transfer ? 'التحويل على:\n' + esc(L.transfer) : 'الدفع تحويل بنكي، بنرسل لك بيانات التحويل'}</div>
       ${starsCache ? `<div class="note">✦ نجومك الحين: ${starsCache.stars} من ${starsCache.freeAt}</div>` : ''}
       <button class="btn ghost" style="margin-top:14px" id="newOrd">طلب جديد</button></div>`;
     $('#newOrd').onclick = () => { K.store.set('last', null); clearInterval(trackT); go('menu'); };

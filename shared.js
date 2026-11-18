@@ -34,7 +34,7 @@ const SEED = {
     {id:'coconut',name:'Coconut Milk',price:2,on:true},{id:'oat',name:'Oat Milk',price:2,on:true}
   ],
   settings: {name:'Day & Night',open:15,close:22,off:'',accepting:true,banner:'',hideOut:true,freeAt:3,
-    place:'حي الملك فهد، المدينة المنورة',whatsapp:'966538897274',transfer:''}
+    place:'حي الملك فهد، المدينة المنورة',whatsapp:'966538897274',transfer:'',map:''}
 };
 const DEMO_PASS = 'dn';
 

@@ -200,7 +200,8 @@ function publicData_() {
       freeAt: num_(s['نجوم المشروب المجاني']) || 3,
       place: String(s['مكان الاستلام'] || ''),
       whatsapp: String(s['رقم الواتساب'] || '').replace(/[^\d]/g, ''),
-      transfer: String(s['بيانات التحويل'] || '')
+      transfer: String(s['بيانات التحويل'] || ''),
+      map: String(s['رابط اللوكيشن'] || '')
     }
   };
 }
