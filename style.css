@@ -203,3 +203,8 @@ footer .serif{font-size:10px}
 section#track,section#cart{padding-bottom:30px}
 .item.dim{opacity:.45;pointer-events:none}
 .item .soldout{position:absolute;top:40%;left:10px;right:10px;background:var(--ink);color:var(--bg);border-radius:12px;font-weight:800;padding:6px;font-size:13px;text-align:center}
+
+.social{display:flex;justify-content:center;gap:12px;margin-top:12px}
+.social a{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--card);border:1px solid var(--line);color:var(--ink);transition:transform .2s}
+.social a:active{transform:scale(.92)}
+.social svg{width:20px;height:20px}

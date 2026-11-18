@@ -294,6 +294,20 @@ $('#bAdd').onclick = () => {
   go('cart');
 };
 
+/* ---------- حسابات السوشل ---------- */
+(function(){
+  const S = (window.DN_CONFIG || {}).SOCIAL || {};
+  const IC = {
+    instagram:['انستقرام','<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r=".9" fill="currentColor" stroke="none"/>'],
+    tiktok:['تيك توك','<path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.4 2.6 2.1 4.3 5 4.6"/>'],
+    snapchat:['سناب شات','<path d="M12 3c3 0 5 2.2 5 5.2v2.3l1.8.6c.5.2.4.9-.1 1l-1.9.6c.3 1.4 1.5 2.6 3 3.1-.6.6-1.7.9-3 1-.3.7-.4 1.4-1.2 1.4-1 0-1.7-.6-3.6-.6s-2.6.6-3.6.6c-.8 0-.9-.7-1.2-1.4-1.3-.1-2.4-.4-3-1 1.5-.5 2.7-1.7 3-3.1l-1.9-.6c-.5-.1-.6-.8-.1-1l1.8-.6V8.2C7 5.2 9 3 12 3z"/>'],
+    x:['إكس','<path d="M4 4l16 16M20 4L4 20"/>']
+  };
+  const html = Object.keys(IC).filter(k => S[k] && /^https:\/\//.test(S[k])).map(k =>
+    `<a href="${esc(S[k])}" target="_blank" rel="noopener" aria-label="${IC[k][0]}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k][1]}</svg></a>`).join('');
+  const box = $('#social'); if (box) { box.innerHTML = html; box.hidden = !html; }
+})();
+
 /* ---------- التحميل ---------- */
 async function load(){
   try {
