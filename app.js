@@ -171,7 +171,7 @@ async function send(){
     const r = await K.apiPost(body);
     if (!r || !r.ok){ btn.disabled = false; btn.textContent = 'أرسلي الطلب ✦'; return err((r && r.msg) || 'ما انرسل الطلب، جربي مرة ثانية'); }
     cart = []; saveCart(); bdPhoto = null; starsCache = {stars:r.stars, freeAt:r.freeAt, phone};
-    K.store.set('last', {no:r.no, total:r.total, reward:r.reward, place:r.place, map:r.map, transfer:r.transfer, pay:body.pay, time:body.time});
+    K.store.set('last', {at:Date.now(), phone, no:r.no, total:r.total, reward:r.reward, place:r.place, map:r.map, transfer:r.transfer, pay:body.pay, time:body.time});
     showTrack();
   } catch(e){ btn.disabled = false; btn.textContent = 'أرسلي الطلب ✦'; err('ما فيه اتصال، تأكدي من النت وجربي مرة ثانية'); }
 }
@@ -181,6 +181,8 @@ const STEPS = [['جديد','وصلنا','✦'],['يتجهز','يتجهز','☕�
 let trackT = null;
 function showTrack(){
   const L = K.store.get('last', null); if (!L) return;
+  // الطلب القديم (أكثر من يومين) أو المحفوظ من نسخة قديمة ما يظهر
+  if (!L.at || Date.now() - L.at > 48 * 3600 * 1000){ K.store.set('last', null); return; }
   go('track');
   const draw = st => {
     const idx = Math.max(0, STEPS.findIndex(x => x[0] === st));
@@ -196,7 +198,7 @@ function showTrack(){
     $('#newOrd').onclick = () => { K.store.set('last', null); clearInterval(trackT); go('menu'); };
   };
   draw('جديد');
-  const poll = async () => { try { const r = await K.apiGet({a:'track', no:L.no}); if (r && r.ok){ draw(r.status); if (r.status === 'استلم' || r.status === 'ملغي') clearInterval(trackT); }
+  const poll = async () => { try { const r = await K.apiGet({a:'track', no:L.no, phone:L.phone || ''}); if (r && r.ok){ draw(r.status); if (r.status === 'استلم' || r.status === 'ملغي') clearInterval(trackT); }
     else if (r && r.ok === false){ K.store.set('last', null); clearInterval(trackT); go('menu'); } } catch(e){} };
   clearInterval(trackT); poll(); trackT = setInterval(poll, 15000);
 }

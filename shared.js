@@ -66,7 +66,7 @@ const mock = {
   get(p){
     const d = db();
     if (p.a === 'data') return d.data;
-    if (p.a === 'track'){ const o = d.orders.find(x => x.no === p.no); return o ? {ok:true,status:o.status} : {ok:false}; }
+    if (p.a === 'track'){ const o = d.orders.find(x => x.no === p.no && (!p.phone || x.phone === normPhone(p.phone))); return o ? {ok:true,status:o.status} : {ok:false}; }
     if (p.a === 'stars') return {ok:true,stars:d.stars[normPhone(p.phone)] || 0,freeAt:d.data.settings.freeAt};
     return {ok:true};
   },

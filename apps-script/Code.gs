@@ -232,7 +232,9 @@ function doGet(e) {
     if (p.a === 'data') return json_(publicData_());
     if (p.a === 'track') {
       const r = rows_(SH.ORD).find(x => String(x[0]) === String(p.no));
-      return json_(r ? { ok: true, status: String(r[8]) } : { ok: false });
+      // الطلب لازم يكون لنفس رقم الجوال، عشان ما تشوف عميلة حالة طلب غيرها
+      if (!r || (p.phone && phone_(r[4]) !== phone_(p.phone))) return json_({ ok: false });
+      return json_({ ok: true, status: String(r[8]) });
     }
     if (p.a === 'stars') {
       const ph = phone_(p.phone);
@@ -294,7 +296,12 @@ function placeOrder_(b) {
   if (hasBday && b.photo) photo = savePhoto_(b.photo, ph);
 
   const sh = sheet_(SH.ORD);
-  const no = 'DN-' + (100 + sh.getLastRow());
+  // رقم طلب جديد ما يتكرر حتى لو انحذفت طلبات قديمة
+  const last = rows_(SH.ORD).reduce((m, r) => Math.max(m, Number(String(r[0]).replace(/\D/g, '')) || 0), 100);
+  const props = PropertiesService.getScriptProperties();
+  const seq = Math.max(last, Number(props.getProperty('LAST_NO')) || 100) + 1;
+  props.setProperty('LAST_NO', String(seq));
+  const no = 'DN-' + seq;
   sh.appendRow([no, now_(), clean_(b.time, 30), clean_(b.name, 40) || 'ضيف', "'" + ph, lines.join('\n'), total,
     b.pay === 'تحويل' ? 'تحويل بنكي' : 'كاش', 'جديد', cups, clean_(b.note, 300), photo, reward ? ('-' + reward + ' ر.س') : '']);
   return { ok: true, no: no, total: total, reward: reward, stars: stars, freeAt: s.freeAt,
