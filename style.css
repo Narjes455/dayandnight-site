@@ -209,4 +209,5 @@ section#track,section#cart{padding-bottom:30px}
 .social a:active{transform:scale(.92)}
 .social svg{width:20px;height:20px}
 
-.maplink{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.maplink{color:var(--ink);font-weight:800;font-size:14px;text-decoration:underline;text-underline-offset:3px}
+footer #hoursTxt{color:var(--ink);font-weight:700}
